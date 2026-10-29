@@ -12,6 +12,7 @@ Eine kleine Web-App zum Lernen von Darts-Checkouts (Steel Darts, Double Out): Si
 - **Lernboxen nach dem Leitner-System:** Richtig heißt eine Box höher (bis Box 5), falsch heißt zurück auf Box 1. Zahlen in niedrigen Boxen kommen häufiger dran, dieselbe Zahl nie zweimal direkt hintereinander.
 - **Zahlenbereiche:** 2–40, 41–60, 61–100, 101–170 oder alles.
 - **Tipp-Knopf:** zeigt den ersten Dart des Standardwegs. Mit Tipp gibt es keine neue Box.
+- **Tageszähler:** „Heute x/y" beginnt um 0 Uhr neu. Die Serie zählt richtige Antworten in Folge, auch über mehrere Tage, und fällt bei einem Fehler auf 0.
 - **Übersicht:** alle Wege nach Box eingefärbt, wie viele Zahlen schon sitzen, Fortschritt zurücksetzen.
 
 ## Nutzung
@@ -22,7 +23,7 @@ Hinweis: Der Browser speichert den Fortschritt passend zum Ort der Datei. Öffne
 
 ## Datenschutz
 
-Die App lädt nichts nach und sendet nichts. Der Lernfortschritt liegt nur lokal in deinem Browser (`localStorage`, Schlüssel `checkout-trainer-v1`). Wer die Browserdaten löscht, verliert auch den Fortschritt.
+Die App lädt nichts nach und sendet nichts. Der Lernfortschritt liegt nur lokal in deinem Browser (`localStorage`, Schlüssel `checkout-trainer-v1` für Boxen und Bereich, `checkout-trainer-day-v1` für den Tageszähler). Wer die Browserdaten löscht, verliert auch den Fortschritt.
 
 ## Hinweis zu den Wegen
 
@@ -36,6 +37,7 @@ Voraussetzung ist [Node.js](https://nodejs.org/), weitere Abhängigkeiten gibt e
 node build.js    # setzt src/ und fonts/ zu checkout-trainer.html und docs/index.html zusammen
 node test.js     # prüft Bewertung, Lernboxen und Ziehung
 node verify.js   # prüft alle Standardwege: Summe, Double am Ende, keine Duplikate, genau die 7 nicht checkbaren Zahlen fehlen
+node test-daycount.js  # prüft Tageszähler und Serie (Tageswechsel, Neuladen, defekter Speicher)
 ```
 
 Die Quellen liegen in `src/`, die Schriften (nur die verwendeten Schnitte, Latin) in `fonts/`. Nach Änderungen `node build.js` ausführen und die gebauten Dateien mit einchecken.

@@ -22,7 +22,7 @@ let t = src('template.html');
 const rep = (k, v) => { t = t.replace(k, () => v); };
 rep('/*CSS*/', fontFaces + '\n' + src('style.css'));
 rep('/*ROUTES*/', JSON.stringify(src('routes.txt')));
-rep('/*LOGIC*/', src('logic.js'));
+rep('/*LOGIC*/', src('logic.js') + '\n' + src('daycount.js'));
 rep('/*APP*/', src('app.js'));
 
 fs.writeFileSync(path.join(__dirname, 'checkout-trainer.html'), t);

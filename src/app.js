@@ -10,6 +10,7 @@
       var o = JSON.parse(localStorage.getItem(KEY) || 'null');
       if (o) { st.boxes = o.boxes || {}; if (typeof o.range === 'number' && RANGES[o.range]) st.range = o.range; }
     } catch (e) {}
+    try { st.sess = DC.load(localStorage, DC.today()); } catch (e) {}
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify({ boxes: st.boxes, range: st.range })); } catch (e) {} }
   function poolNow() { var r = RANGES[st.range]; return CO.pool(ROUTES, r[0], r[1]); }
@@ -101,7 +102,7 @@
     return h;
   }
   function render() {
-    var s = st.sess;
+    var s = st.sess = DC.normalize(st.sess, DC.today());
     var h = '<header><h1>Checkout<span>.</span>Trainer</h1><div class="session">Heute <b>' + s.ok + '/' + s.n + '</b> richtig · Serie <b>' + s.streak + '</b></div></header>';
     h += '<div class="tabs" role="tablist"><button class="tab" role="tab" data-a="tab" data-t="train" aria-selected="' + (st.tab === 'train') + '">Training</button><button class="tab" role="tab" data-a="tab" data-t="over" aria-selected="' + (st.tab === 'over') + '">Übersicht</button></div>';
     h += st.tab === 'train' ? trainHtml() : overviewHtml();
@@ -111,7 +112,8 @@
   function finish(ok, title, body) {
     var c = st.cur, old = st.boxes[c.score] || 0, nb = CO.nextBox(old, ok, c.hint);
     st.boxes[c.score] = nb; save();
-    st.sess.n++; if (ok) { st.sess.ok++; st.sess.streak++; } else st.sess.streak = 0;
+    st.sess = DC.record(st.sess, ok, DC.today());
+    try { DC.save(localStorage, st.sess); } catch (e) {}
     var note = c.hint && ok ? 'Mit Tipp gelöst: Box bleibt bei ' + nb + '.' : (nb === old ? 'Box ' + nb + ' bleibt.' : (old ? 'Box ' + old : 'Neu') + ' → Box ' + nb + '.');
     c.res = { ok: ok, title: title, body: body, boxNote: note };
     st.last = c.score;

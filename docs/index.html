@@ -158,6 +158,53 @@ button:disabled { opacity: .35; cursor: not-allowed; }
     isValidDart: isValidDart, evaluate: evaluate, pool: pool, pick: pick, nextBox: nextBox, WEIGHTS: WEIGHTS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.CO = api;
 })(typeof window !== 'undefined' ? window : globalThis);
+
+/* Tageszähler des Checkout-Trainers (läuft im Browser und in Node).
+   "Heute x/y" gilt pro Kalendertag (Ortszeit, neuer Tag um 0 Uhr).
+   Die Serie läuft über Tage weiter und fällt nur bei einem Fehler auf 0. */
+(function (root) {
+  var KEY = 'checkout-trainer-day-v1';
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  /* Tagesschlüssel in Ortszeit, z. B. "2026-10-29". */
+  function dayKey(date) {
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+  }
+  function today() { return dayKey(new Date()); }
+
+  function count(v) { return typeof v === 'number' && v >= 0 && Math.floor(v) === v ? v : 0; }
+
+  /* Bringt einen (evtl. alten oder kaputten) Stand auf den Tag "day".
+     Neuer Tag: Heute-Werte auf 0, Serie bleibt. */
+  function normalize(state, day) {
+    var s = state && typeof state === 'object' ? state : {};
+    var streak = count(s.streak);
+    if (s.day !== day) return { day: day, n: 0, ok: 0, streak: streak };
+    var n = count(s.n), ok = Math.min(count(s.ok), n);
+    return { day: day, n: n, ok: ok, streak: streak };
+  }
+
+  /* Neuer Stand nach einer Antwort. Verändert "state" nicht. */
+  function record(state, correct, day) {
+    var s = normalize(state, day);
+    s.n++;
+    if (correct) { s.ok++; s.streak++; } else s.streak = 0;
+    return s;
+  }
+
+  /* Speicherzugriffe schlagen still fehl (z. B. privater Modus), die App läuft dann ohne Persistenz weiter. */
+  function load(storage, day) {
+    var o = null;
+    try { o = JSON.parse(storage.getItem(KEY) || 'null'); } catch (e) {}
+    return normalize(o, day);
+  }
+  function save(storage, state) {
+    try { storage.setItem(KEY, JSON.stringify(state)); return true; } catch (e) { return false; }
+  }
+
+  var api = { KEY: KEY, dayKey: dayKey, today: today, normalize: normalize, record: record, load: load, save: save };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.DC = api;
+})(typeof window !== 'undefined' ? window : globalThis);
 </script>
 <script>(function () {
   var ROUTES = CO.parseRoutes(window.ROUTES_TXT);
@@ -171,6 +218,7 @@ button:disabled { opacity: .35; cursor: not-allowed; }
       var o = JSON.parse(localStorage.getItem(KEY) || 'null');
       if (o) { st.boxes = o.boxes || {}; if (typeof o.range === 'number' && RANGES[o.range]) st.range = o.range; }
     } catch (e) {}
+    try { st.sess = DC.load(localStorage, DC.today()); } catch (e) {}
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify({ boxes: st.boxes, range: st.range })); } catch (e) {} }
   function poolNow() { var r = RANGES[st.range]; return CO.pool(ROUTES, r[0], r[1]); }
@@ -262,7 +310,7 @@ button:disabled { opacity: .35; cursor: not-allowed; }
     return h;
   }
   function render() {
-    var s = st.sess;
+    var s = st.sess = DC.normalize(st.sess, DC.today());
     var h = '<header><h1>Checkout<span>.</span>Trainer</h1><div class="session">Heute <b>' + s.ok + '/' + s.n + '</b> richtig · Serie <b>' + s.streak + '</b></div></header>';
     h += '<div class="tabs" role="tablist"><button class="tab" role="tab" data-a="tab" data-t="train" aria-selected="' + (st.tab === 'train') + '">Training</button><button class="tab" role="tab" data-a="tab" data-t="over" aria-selected="' + (st.tab === 'over') + '">Übersicht</button></div>';
     h += st.tab === 'train' ? trainHtml() : overviewHtml();
@@ -272,7 +320,8 @@ button:disabled { opacity: .35; cursor: not-allowed; }
   function finish(ok, title, body) {
     var c = st.cur, old = st.boxes[c.score] || 0, nb = CO.nextBox(old, ok, c.hint);
     st.boxes[c.score] = nb; save();
-    st.sess.n++; if (ok) { st.sess.ok++; st.sess.streak++; } else st.sess.streak = 0;
+    st.sess = DC.record(st.sess, ok, DC.today());
+    try { DC.save(localStorage, st.sess); } catch (e) {}
     var note = c.hint && ok ? 'Mit Tipp gelöst: Box bleibt bei ' + nb + '.' : (nb === old ? 'Box ' + nb + ' bleibt.' : (old ? 'Box ' + old : 'Neu') + ' → Box ' + nb + '.');
     c.res = { ok: ok, title: title, body: body, boxNote: note };
     st.last = c.score;

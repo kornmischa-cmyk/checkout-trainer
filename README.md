@@ -8,16 +8,20 @@ Eine kleine Web-App zum Lernen von Darts-Checkouts (Steel Darts, Double Out): Si
 
 - **Jeder gültige Weg zählt:** Die Summe stimmt und der letzte Dart ist ein Double oder Bull.
 - **Standardweg als Vergleich:** Weicht dein Weg ab, wird der Standardweg zusätzlich gezeigt.
-- **„Nicht checkbar":** 159, 162, 163, 165, 166, 168 und 169 gehen mit drei Darts nicht.
+- **„Nicht checkbar":** 159, 162, 163, 165, 166, 168 und 169 gehen mit drei Darts nicht. Der Knopf dafür erscheint im Bereich 101–170. Im Bereich „Alles" werden diese Zahlen nicht abgefragt.
+- **Vertippt:** Nach einem falschen Ergebnis nimmt „Vertippt" die Wertung zurück (Box, Tageszähler, Serie), die Darts bleiben zum Korrigieren stehen.
 - **Lernboxen nach dem Leitner-System:** Richtig heißt eine Box höher (bis Box 5), falsch heißt zurück auf Box 1. Zahlen in niedrigen Boxen kommen häufiger dran, dieselbe Zahl nie zweimal direkt hintereinander.
 - **Zahlenbereiche:** 2–40, 41–60, 61–100, 101–170 oder alles.
+- **Ring als Präfix:** Bei Double oder Triple zeigen die Zahlentasten den Ring (D20, T19). Nach jedem Dart springt der Ring zurück auf Single.
 - **Tipp-Knopf:** zeigt den ersten Dart des Standardwegs. Mit Tipp gibt es keine neue Box.
 - **Tageszähler:** „Heute x/y" beginnt um 0 Uhr neu. Die Serie zählt richtige Antworten in Folge, auch über mehrere Tage, und fällt bei einem Fehler auf 0.
-- **Übersicht:** alle Wege nach Box eingefärbt, wie viele Zahlen schon sitzen, Fortschritt zurücksetzen.
+- **Übersicht:** alle Wege nach Box eingefärbt, wie viele Zahlen schon sitzen (Box 4 oder 5), Fortschritt zurücksetzen.
 
 ## Nutzung
 
 [`checkout-trainer.html`](checkout-trainer.html) herunterladen und im Browser öffnen. Die Datei enthält alles, auch die Schriften, und funktioniert ohne Internetverbindung.
+
+Der Ordner `docs/` enthält dieselbe App als Webseite für GitHub Pages, zusätzlich installierbar auf dem Homescreen (Manifest, Service Worker, Icons).
 
 Hinweis: Der Browser speichert den Fortschritt passend zum Ort der Datei. Öffnest du sie später von einem anderen Ort, beginnt der Fortschritt von vorn.
 
@@ -40,11 +44,13 @@ node verify.js   # prüft alle Standardwege: Summe, Double am Ende, keine Duplik
 node test-daycount.js  # prüft Tageszähler und Serie (Tageswechsel, Neuladen, defekter Speicher)
 ```
 
+`make-icons.js` erzeugt die Homescreen-Icons in `docs/icons/` neu. Das ist nur nötig, wenn sich das Icon ändert, und braucht Playwright (Anleitung im Kopf der Datei).
+
 Die Quellen liegen in `src/`, die Schriften (nur die verwendeten Schnitte, Latin) in `fonts/`. Nach Änderungen `node build.js` ausführen und die gebauten Dateien mit einchecken.
 
 ## Lizenz
 
-Code unter der [MIT-Lizenz](LICENSE), Schriften (Big Shoulders Display, Hanken Grotesk) unter der [SIL Open Font License 1.1](fonts/OFL.txt).
+Code unter der [MIT-Lizenz](LICENSE), Schriften (Big Shoulders Display, Hanken Grotesk) unter der [SIL Open Font License 1.1](fonts/OFL.txt). Die vier Symbole stammen aus [Lucide](https://lucide.dev) (ISC-Lizenz).
 
 Ein privates, nicht-kommerzielles Projekt ohne Gewähr. Es besteht keine Verbindung zu Herstellern, Verbänden, Apps oder anderen Dritten aus dem Dartsport. Entwickelt mit Unterstützung von Claude (Anthropic).
 
